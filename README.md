@@ -114,7 +114,6 @@ MatrixBenchmark.concurrentMultiply3           1000    ss  100  186,827 ± 11,882
 ## Занятие 2
 - Разбор ДЗ (многопоточная реализация умножения матриц)
 - <a href="http://openjdk.java.net/projects/code-tools/jmh/">Java Microbenchmark JMH</a> (от Алексея Шипилева)
-- Обзор <a href="https://github.com/google/guava">Guava</a>
 - Формат XML. Создание схемы XSD.
 - Работа с XML в Java
   - JAXB, JAXP
