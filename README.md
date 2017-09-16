@@ -194,7 +194,7 @@ MatrixBenchmark.concurrentMultiply3           1000    ss  100  186,827 ± 11,882
 - Отправка почты с вложениями
   - по JAX-RS
   - по JMS
-  -Рефакторинг. Эксепшены в Java 8 лямбда
+- Рефакторинг. Эксепшены в лямбдах Java 8
 - Concurrent and distributed applications toolkit AKKA
 - Отсылка почты через AKKA Actors (Typed и Untyped Actors)
 - Асинхронные сервлеты 3.0
