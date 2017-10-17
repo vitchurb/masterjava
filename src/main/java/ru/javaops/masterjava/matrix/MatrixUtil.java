@@ -1,8 +1,7 @@
 package ru.javaops.masterjava.matrix;
 
 import java.util.Random;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
+import java.util.concurrent.*;
 
 /**
  * gkislin
@@ -10,26 +9,71 @@ import java.util.concurrent.ExecutorService;
  */
 public class MatrixUtil {
 
-    // TODO implement parallel multiplication matrixA*matrixB
     public static int[][] concurrentMultiply(int[][] matrixA, int[][] matrixB, ExecutorService executor) throws InterruptedException, ExecutionException {
         final int matrixSize = matrixA.length;
         final int[][] matrixC = new int[matrixSize][matrixSize];
 
+        final int[][] matrixTransposedB = new int[matrixSize][matrixSize];
+        for (int i = 0; i < matrixSize; i++) {
+            for (int j = 0; j < matrixSize; j++) {
+                matrixTransposedB[j][i] = matrixB[i][j];
+            }
+        }
+
+        ExecutorCompletionService<Boolean> completionService = new ExecutorCompletionService<Boolean>(executor);
+        CountDownLatch countDownLatch = new CountDownLatch(matrixSize);
+        for (int i = 0; i < matrixSize; i++) {
+            final int from = i;
+            completionService.submit(() -> {
+                try {
+                    int[] matrixARow = matrixA[from];
+                    int[] matrixCRow = matrixC[from];
+                    for (int j = 0; j < matrixSize; j++) {
+                        int sum = 0;
+                        int[] matrixTransposedBRow = matrixTransposedB[j];
+                        for (int k = 0; k < matrixSize; k++) {
+                            sum += matrixARow[k] * matrixTransposedBRow[k];
+                        }
+                        matrixCRow[j] = sum;
+                    }
+                    return true;
+                } finally {
+                    countDownLatch.countDown();
+                }
+            });
+        }
+        countDownLatch.await();
+        Future<Boolean> future;
+        //For processing Exceptions if they occurs
+        while ((future = completionService.poll()) != null) {
+            future.get();
+        }
         return matrixC;
     }
 
-    // TODO optimize by https://habrahabr.ru/post/114797/
     public static int[][] singleThreadMultiply(int[][] matrixA, int[][] matrixB) {
         final int matrixSize = matrixA.length;
         final int[][] matrixC = new int[matrixSize][matrixSize];
 
+        final int[][] matrixTransposedB = new int[matrixSize][matrixSize];
         for (int i = 0; i < matrixSize; i++) {
             for (int j = 0; j < matrixSize; j++) {
+                matrixTransposedB[j][i] = matrixB[i][j];
+            }
+        }
+
+
+        for (int i = 0; i < matrixSize; i++) {
+            int[] matrixARow = matrixA[i];
+            int[] matrixCRow = matrixC[i];
+
+            for (int j = 0; j < matrixSize; j++) {
+                int[] matrixTransposedBRow = matrixTransposedB[j];
                 int sum = 0;
                 for (int k = 0; k < matrixSize; k++) {
-                    sum += matrixA[i][k] * matrixB[k][j];
+                    sum += matrixARow[k] * matrixTransposedBRow[k];
                 }
-                matrixC[i][j] = sum;
+                matrixCRow[j] = sum;
             }
         }
         return matrixC;
