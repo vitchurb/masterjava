@@ -2,12 +2,14 @@ package ru.javaops.masterjava.xml.util;
 
 import com.google.common.io.Resources;
 import org.junit.Test;
+import ru.javaops.masterjava.xml.MainXml;
 import ru.javaops.masterjava.xml.schema.CityType;
 import ru.javaops.masterjava.xml.schema.ObjectFactory;
 import ru.javaops.masterjava.xml.schema.Payload;
 
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
+import java.util.List;
 
 public class JaxbParserTest {
     private static final JaxbParser JAXB_PARSER = new JaxbParser(ObjectFactory.class);
@@ -37,4 +39,15 @@ public class JaxbParserTest {
         JAXB_PARSER.validate(strCity);
         System.out.println(strCity);
     }
+
+    @Test
+    public void testMainXmlGetUsersForProject() throws Exception {
+        Payload payload = JAXB_PARSER.unmarshal(
+                Resources.getResource("payload.xml").openStream());
+        List<MainXml.UserFullNameEmail> usersList = MainXml.getUsersForProject(payload, "TopJava");
+        for (MainXml.UserFullNameEmail user : usersList) {
+            System.out.println("" + user.getFullName() + " " + user.getEmail());
+        }
+    }
+
 }

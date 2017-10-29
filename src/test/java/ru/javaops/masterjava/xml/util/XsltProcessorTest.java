@@ -15,4 +15,17 @@ public class XsltProcessorTest {
             System.out.println(processor.transform(xmlInputStream));
         }
     }
+
+
+    @Test
+    public void transformGroupsToHtml() throws Exception {
+        try (InputStream xslInputStream = Resources.getResource("groupsForProject2.xsl").openStream();
+             InputStream xmlInputStream = Resources.getResource("payload.xml").openStream()) {
+
+            XsltProcessor processor = new XsltProcessor(xslInputStream);
+            processor.setParameter("projectId", "topjava");
+            System.out.println(processor.transform(xmlInputStream));
+        }
+    }
+
 }

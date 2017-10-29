@@ -25,20 +25,14 @@ import javax.xml.namespace.QName;
 public class ObjectFactory {
 
     private final static QName _City_QNAME = new QName("http://javaops.ru", "City");
+    private final static QName _Project_QNAME = new QName("http://javaops.ru", "Project");
+    private final static QName _Group_QNAME = new QName("http://javaops.ru", "Group");
 
     /**
      * Create a new ObjectFactory that can be used to create new instances of schema derived classes for package: ru.javaops.masterjava.xml.schema
      * 
      */
     public ObjectFactory() {
-    }
-
-    /**
-     * Create an instance of {@link Payload }
-     * 
-     */
-    public Payload createPayload() {
-        return new Payload();
     }
 
     /**
@@ -50,11 +44,59 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link Payload }
+     * 
+     */
+    public Payload createPayload() {
+        return new Payload();
+    }
+
+    /**
+     * Create an instance of {@link ProjectType }
+     * 
+     */
+    public ProjectType createProjectType() {
+        return new ProjectType();
+    }
+
+    /**
+     * Create an instance of {@link GroupType }
+     * 
+     */
+    public GroupType createGroupType() {
+        return new GroupType();
+    }
+
+    /**
+     * Create an instance of {@link User.GroupsForUser }
+     * 
+     */
+    public User.GroupsForUser createUserGroupsForUser() {
+        return new User.GroupsForUser();
+    }
+
+    /**
      * Create an instance of {@link Payload.Cities }
      * 
      */
     public Payload.Cities createPayloadCities() {
         return new Payload.Cities();
+    }
+
+    /**
+     * Create an instance of {@link Payload.Projects }
+     * 
+     */
+    public Payload.Projects createPayloadProjects() {
+        return new Payload.Projects();
+    }
+
+    /**
+     * Create an instance of {@link Payload.Groups }
+     * 
+     */
+    public Payload.Groups createPayloadGroups() {
+        return new Payload.Groups();
     }
 
     /**
@@ -74,12 +116,38 @@ public class ObjectFactory {
     }
 
     /**
+     * Create an instance of {@link GroupForUser }
+     * 
+     */
+    public GroupForUser createGroupForUser() {
+        return new GroupForUser();
+    }
+
+    /**
      * Create an instance of {@link JAXBElement }{@code <}{@link CityType }{@code >}}
      * 
      */
     @XmlElementDecl(namespace = "http://javaops.ru", name = "City")
     public JAXBElement<CityType> createCity(CityType value) {
         return new JAXBElement<CityType>(_City_QNAME, CityType.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link ProjectType }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://javaops.ru", name = "Project")
+    public JAXBElement<ProjectType> createProject(ProjectType value) {
+        return new JAXBElement<ProjectType>(_Project_QNAME, ProjectType.class, null, value);
+    }
+
+    /**
+     * Create an instance of {@link JAXBElement }{@code <}{@link GroupType }{@code >}}
+     * 
+     */
+    @XmlElementDecl(namespace = "http://javaops.ru", name = "Group")
+    public JAXBElement<GroupType> createGroup(GroupType value) {
+        return new JAXBElement<GroupType>(_Group_QNAME, GroupType.class, null, value);
     }
 
 }

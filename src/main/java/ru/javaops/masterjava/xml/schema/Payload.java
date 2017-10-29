@@ -1,11 +1,15 @@
 
 package ru.javaops.masterjava.xml.schema;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import javax.xml.bind.JAXBElement;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementRef;
+import javax.xml.bind.annotation.XmlMixed;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlType;
 
@@ -24,8 +28,30 @@ import javax.xml.bind.annotation.XmlType;
  *           &lt;complexType>
  *             &lt;complexContent>
  *               &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- *                 &lt;sequence maxOccurs="unbounded">
+ *                 &lt;sequence maxOccurs="unbounded" minOccurs="0">
  *                   &lt;element ref="{http://javaops.ru}City"/>
+ *                 &lt;/sequence>
+ *               &lt;/restriction>
+ *             &lt;/complexContent>
+ *           &lt;/complexType>
+ *         &lt;/element>
+ *         &lt;element name="Projects">
+ *           &lt;complexType>
+ *             &lt;complexContent>
+ *               &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+ *                 &lt;sequence maxOccurs="unbounded" minOccurs="0">
+ *                   &lt;element ref="{http://javaops.ru}Project" minOccurs="0"/>
+ *                 &lt;/sequence>
+ *               &lt;/restriction>
+ *             &lt;/complexContent>
+ *           &lt;/complexType>
+ *         &lt;/element>
+ *         &lt;element name="Groups" minOccurs="0">
+ *           &lt;complexType>
+ *             &lt;complexContent>
+ *               &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+ *                 &lt;sequence maxOccurs="unbounded" minOccurs="0">
+ *                   &lt;element ref="{http://javaops.ru}Group" minOccurs="0"/>
  *                 &lt;/sequence>
  *               &lt;/restriction>
  *             &lt;/complexContent>
@@ -59,6 +85,10 @@ public class Payload {
 
     @XmlElement(name = "Cities", namespace = "http://javaops.ru", required = true)
     protected Payload.Cities cities;
+    @XmlElement(name = "Projects", namespace = "http://javaops.ru", required = true)
+    protected Payload.Projects projects;
+    @XmlElement(name = "Groups", namespace = "http://javaops.ru")
+    protected Payload.Groups groups;
     @XmlElement(name = "Users", namespace = "http://javaops.ru", required = true)
     protected Payload.Users users;
 
@@ -84,6 +114,54 @@ public class Payload {
      */
     public void setCities(Payload.Cities value) {
         this.cities = value;
+    }
+
+    /**
+     * Gets the value of the projects property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link Payload.Projects }
+     *     
+     */
+    public Payload.Projects getProjects() {
+        return projects;
+    }
+
+    /**
+     * Sets the value of the projects property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link Payload.Projects }
+     *     
+     */
+    public void setProjects(Payload.Projects value) {
+        this.projects = value;
+    }
+
+    /**
+     * Gets the value of the groups property.
+     * 
+     * @return
+     *     possible object is
+     *     {@link Payload.Groups }
+     *     
+     */
+    public Payload.Groups getGroups() {
+        return groups;
+    }
+
+    /**
+     * Sets the value of the groups property.
+     * 
+     * @param value
+     *     allowed object is
+     *     {@link Payload.Groups }
+     *     
+     */
+    public void setGroups(Payload.Groups value) {
+        this.groups = value;
     }
 
     /**
@@ -120,7 +198,7 @@ public class Payload {
      * &lt;complexType>
      *   &lt;complexContent>
      *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
-     *       &lt;sequence maxOccurs="unbounded">
+     *       &lt;sequence maxOccurs="unbounded" minOccurs="0">
      *         &lt;element ref="{http://javaops.ru}City"/>
      *       &lt;/sequence>
      *     &lt;/restriction>
@@ -136,7 +214,7 @@ public class Payload {
     })
     public static class Cities {
 
-        @XmlElement(name = "City", namespace = "http://javaops.ru", required = true)
+        @XmlElement(name = "City", namespace = "http://javaops.ru")
         protected List<CityType> city;
 
         /**
@@ -166,6 +244,128 @@ public class Payload {
                 city = new ArrayList<CityType>();
             }
             return this.city;
+        }
+
+    }
+
+
+    /**
+     * <p>Java class for anonymous complex type.
+     * 
+     * <p>The following schema fragment specifies the expected content contained within this class.
+     * 
+     * <pre>
+     * &lt;complexType>
+     *   &lt;complexContent>
+     *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+     *       &lt;sequence maxOccurs="unbounded" minOccurs="0">
+     *         &lt;element ref="{http://javaops.ru}Group" minOccurs="0"/>
+     *       &lt;/sequence>
+     *     &lt;/restriction>
+     *   &lt;/complexContent>
+     * &lt;/complexType>
+     * </pre>
+     * 
+     * 
+     */
+    @XmlAccessorType(XmlAccessType.FIELD)
+    @XmlType(name = "", propOrder = {
+        "group"
+    })
+    public static class Groups {
+
+        @XmlElement(name = "Group", namespace = "http://javaops.ru")
+        protected List<GroupType> group;
+
+        /**
+         * Gets the value of the group property.
+         * 
+         * <p>
+         * This accessor method returns a reference to the live list,
+         * not a snapshot. Therefore any modification you make to the
+         * returned list will be present inside the JAXB object.
+         * This is why there is not a <CODE>set</CODE> method for the group property.
+         * 
+         * <p>
+         * For example, to add a new item, do as follows:
+         * <pre>
+         *    getGroup().add(newItem);
+         * </pre>
+         * 
+         * 
+         * <p>
+         * Objects of the following type(s) are allowed in the list
+         * {@link GroupType }
+         * 
+         * 
+         */
+        public List<GroupType> getGroup() {
+            if (group == null) {
+                group = new ArrayList<GroupType>();
+            }
+            return this.group;
+        }
+
+    }
+
+
+    /**
+     * <p>Java class for anonymous complex type.
+     * 
+     * <p>The following schema fragment specifies the expected content contained within this class.
+     * 
+     * <pre>
+     * &lt;complexType>
+     *   &lt;complexContent>
+     *     &lt;restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+     *       &lt;sequence maxOccurs="unbounded" minOccurs="0">
+     *         &lt;element ref="{http://javaops.ru}Project" minOccurs="0"/>
+     *       &lt;/sequence>
+     *     &lt;/restriction>
+     *   &lt;/complexContent>
+     * &lt;/complexType>
+     * </pre>
+     * 
+     * 
+     */
+    @XmlAccessorType(XmlAccessType.FIELD)
+    @XmlType(name = "", propOrder = {
+        "content"
+    })
+    public static class Projects {
+
+        @XmlElementRef(name = "Project", namespace = "http://javaops.ru", type = JAXBElement.class, required = false)
+        @XmlMixed
+        protected List<Serializable> content;
+
+        /**
+         * Gets the value of the content property.
+         * 
+         * <p>
+         * This accessor method returns a reference to the live list,
+         * not a snapshot. Therefore any modification you make to the
+         * returned list will be present inside the JAXB object.
+         * This is why there is not a <CODE>set</CODE> method for the content property.
+         * 
+         * <p>
+         * For example, to add a new item, do as follows:
+         * <pre>
+         *    getContent().add(newItem);
+         * </pre>
+         * 
+         * 
+         * <p>
+         * Objects of the following type(s) are allowed in the list
+         * {@link String }
+         * {@link JAXBElement }{@code <}{@link ProjectType }{@code >}
+         * 
+         * 
+         */
+        public List<Serializable> getContent() {
+            if (content == null) {
+                content = new ArrayList<Serializable>();
+            }
+            return this.content;
         }
 
     }

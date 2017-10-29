@@ -2,22 +2,79 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://javaops.ru payload.xsd">
     <Users>
-        <User flag="active" city="kiv">
-            <email>gmail@gmail.com</email>
+        <User flag="active" city="kiv" email="mail1@gmail.com">
             <fullName>Full Name</fullName>
+            <GroupsForUser>
+                <GroupForUser group="topjava03"/>
+                <GroupForUser group="masterjava03"/>
+            </GroupsForUser>
         </User>
-        <User flag="superuser" city="spb">
-            <email>admin@javaops.ru</email>
+        <User flag="superuser" city="spb" email="pochta@mail.ru">
             <fullName>Admin</fullName>
+            <GroupsForUser>
+                <GroupForUser group="topjava01"/>
+                <GroupForUser group="topjava02"/>
+                <GroupForUser group="topjava03"/>
+                <GroupForUser group="topjava07"/>
+                <GroupForUser group="topjava08"/>
+                <GroupForUser group="masterjava01"/>
+                <GroupForUser group="masterjava02"/>
+                <GroupForUser group="masterjava03"/>
+            </GroupsForUser>
         </User>
-        <User flag="deleted" city="spb">
-            <email>mail@yandex.ru</email>
+        <User flag="deleted" city="spb" email="nobody@gmail.com">
             <fullName>Deleted</fullName>
+            <GroupsForUser>
+            </GroupsForUser>
+        </User>
+        <User flag="active" city="spb" email="user5@gmail.com">
+            <fullName>User5</fullName>
+            <GroupsForUser>
+                <GroupForUser group="masterjava03"/>
+            </GroupsForUser>
+        </User>
+        <User flag="active" city="kiv" email="user6@gmail.com">
+            <fullName>User6</fullName>
+            <GroupsForUser>
+                <GroupForUser group="topjava01"/>
+            </GroupsForUser>
+        </User>
+        <User flag="active" city="kiv" email="user7@gmail.com">
+            <fullName>User7</fullName>
+            <GroupsForUser>
+                <GroupForUser group="topjava01"/>
+            </GroupsForUser>
+        </User>
+        <User flag="active" city="spb" email="user8@gmail.com">
+            <fullName>User8</fullName>
+            <GroupsForUser>
+                <GroupForUser group="topjava01"/>
+            </GroupsForUser>
+        </User>
+        <User flag="active" city="spb" email="user9@gmail.com">
+            <fullName>User9</fullName>
+            <GroupsForUser>
+                <GroupForUser group="topjava01"/>
+            </GroupsForUser>
         </User>
     </Users>
+    <Projects>
+        <Project id="topjava">TopJava</Project>
+        <Project id="masterjava">MasterJava</Project>
+    </Projects>
     <Cities>
         <City id="spb">Санкт-Петербург</City>
         <City id="kiv">Киев</City>
         <City id="mnsk">Минск</City>
     </Cities>
+    <Groups>
+        <Group id="topjava01" project="topjava" state="FINISHED">TopJava 01</Group>
+        <Group id="topjava02" project="topjava" state="FINISHED">TopJava 02</Group>
+        <Group id="topjava03" project="topjava" state="FINISHED">TopJava 03</Group>
+        <Group id="topjava07" project="topjava" state="FINISHED">TopJava 07</Group>
+        <Group id="topjava08" project="topjava" state="REGISTERING">TopJava 08</Group>
+        <Group id="masterjava01" project="masterjava" state="FINISHED">MasterJava 01</Group>
+        <Group id="masterjava02" project="masterjava" state="CURRENT">MasterJava 02</Group>
+        <Group id="masterjava03" project="masterjava" state="REGISTERING">MasterJava 03</Group>
+    </Groups>
 </Payload>
