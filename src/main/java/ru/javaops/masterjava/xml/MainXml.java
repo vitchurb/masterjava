@@ -39,7 +39,7 @@ public class MainXml {
             }
         }
         Collections.sort(usersList);
-        return new ArrayList<>(usersList);
+        return usersList;
     }
 
 
