@@ -11,16 +11,22 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <artifactId>common</artifactId>
+    <artifactId>test</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
-    <name>Common</name>
+    <name>Test</name>
 
     <dependencies>
         <dependency>
-            <groupId>ru.javaops</groupId>
-            <artifactId>mail-api</artifactId>
-            <version>${project.version}</version>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-core</artifactId>
+            <version>RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.openjdk.jmh</groupId>
+            <artifactId>jmh-generator-annprocess</artifactId>
+            <version>RELEASE</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>
