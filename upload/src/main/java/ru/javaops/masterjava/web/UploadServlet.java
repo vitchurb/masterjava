@@ -4,6 +4,7 @@ import org.thymeleaf.context.WebContext;
 import ru.javaops.masterjava.web.utils.ThymeleafAppUtil;
 import ru.javaops.masterjava.xml.schema.User;
 import ru.javaops.masterjava.xml.service.XmlService;
+import ru.javaops.masterjava.xml.util.JaxbParser;
 
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -13,18 +14,25 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
+import javax.xml.bind.JAXBException;
 import javax.xml.stream.XMLStreamException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.Date;
 
 /**
  * Created by vit on 05.11.2017.
  */
-@MultipartConfig(maxFileSize = 10_000_000, maxRequestSize = 10_000_000)
+@MultipartConfig(maxFileSize = 10_000_000,
+        maxRequestSize = 10_000_000,
+        fileSizeThreshold = 1_000_000)
 @WebServlet(name = "UploadServlet", urlPatterns = {"/upload", "/"})
 public class UploadServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
+
+    private static final JaxbParser JAXB_PARSER = new JaxbParser(User.class);
+
 
     @Override
     public void init() {
@@ -38,10 +46,10 @@ public class UploadServlet extends HttpServlet {
         if (xmlPart == null || xmlPart.getSize() == 0) {
             response.sendRedirect("upload");
         } else {
-            try {
-                Collection<User> users = XmlService.processUsersByStax(xmlPart.getInputStream());
+            try (InputStream is = xmlPart.getInputStream()) {
+                Collection<User> users = XmlService.processUsersByStax(JAXB_PARSER, is);
                 process(request, response, users);
-            } catch (XMLStreamException e) {
+            } catch (XMLStreamException | JAXBException e) {
                 throw new ServletException(e);
             }
         }

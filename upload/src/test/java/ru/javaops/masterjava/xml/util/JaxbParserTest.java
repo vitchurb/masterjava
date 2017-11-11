@@ -10,11 +10,9 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 public class JaxbParserTest {
-    private static final JaxbParser JAXB_PARSER = new JaxbParser(ObjectFactory.class);
+    private static final JaxbParser JAXB_PARSER = new JaxbParser(
+            Schemas.ofClasspath("payload.xsd"), ObjectFactory.class);
 
-    static {
-        JAXB_PARSER.setSchema(Schemas.ofClasspath("payload.xsd"));
-    }
 
     @Test
     public void testPayload() throws Exception {
