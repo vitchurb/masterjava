@@ -40,7 +40,7 @@ public class UserProcessor {
 
         UserDao dao = DBIProvider.getDao(UserDao.class);
 
-        ExecutorCompletionService completionService = new ExecutorCompletionService<Boolean>(executor);
+        ExecutorCompletionService<InsertingResultsWithNum> completionService = new ExecutorCompletionService<>(executor);
         int countTasks = 0;
         while (processor.doUntil(XMLEvent.START_ELEMENT, "User")) {
             ru.javaops.masterjava.xml.schema.User userXml = jaxbParser.unmarshal(processor.getReader(), ru.javaops.masterjava.xml.schema.User.class);
@@ -60,8 +60,7 @@ public class UserProcessor {
 
         for (int i = 0; i < countTasks; i++) {
             try {
-                InsertingResultsWithNum usersResult =
-                        (InsertingResultsWithNum) completionService.take().get();
+                InsertingResultsWithNum usersResult = completionService.take().get();
                 usersWithResultsByBatchNum.put(usersResult.getNum(), usersResult.getResults());
             } catch (InterruptedException | ExecutionException e) {
                 throw new RuntimeException(e);
@@ -90,7 +89,7 @@ public class UserProcessor {
                         emailAlreadyInDatabase = userDao.getEmailByEmailsNotInIds(emails, newIds);
                     else
                         emailAlreadyInDatabase = userDao.getEmailByEmails(emails);
-                    Set<String> emailAlreadyInDatabaseSet = new HashSet(emailAlreadyInDatabase);
+                    Set<String> emailAlreadyInDatabaseSet = new HashSet<>(emailAlreadyInDatabase);
 
                     for (User user : usersForBatch) {
                         if (emailAlreadyInDatabaseSet.contains(user.getEmail())) {
