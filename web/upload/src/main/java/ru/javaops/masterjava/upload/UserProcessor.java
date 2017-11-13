@@ -6,7 +6,9 @@ import ru.javaops.masterjava.persist.DBIProvider;
 import ru.javaops.masterjava.persist.dao.UserDao;
 import ru.javaops.masterjava.persist.model.User;
 import ru.javaops.masterjava.persist.model.UserFlag;
+import ru.javaops.masterjava.upload.to.SaveChunkError;
 import ru.javaops.masterjava.upload.to.SaveUserResult;
+import ru.javaops.masterjava.upload.to.SavingResult;
 import ru.javaops.masterjava.xml.util.JaxbParser;
 import ru.javaops.masterjava.xml.util.StaxStreamProcessor;
 
@@ -14,10 +16,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.events.XMLEvent;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
@@ -26,15 +25,21 @@ import static org.slf4j.LoggerFactory.getLogger;
 public class UserProcessor {
     private static final Logger log = getLogger(UserProcessor.class);
 
-    private static ThreadPoolExecutor executor =
+    private static final JaxbParser JAXB_PARSER = new JaxbParser(ru.javaops.masterjava.xml.schema.User.class);
+
+    private static final ThreadPoolExecutor executor =
             new ThreadPoolExecutorGrowing(0, 30, 10, TimeUnit.SECONDS);
 
 
-    public List<SaveUserResult> process(final JaxbParser jaxbParser,
-                                        final InputStream is,
-                                        final int batchSize) throws XMLStreamException, JAXBException {
+    public SavingResult process(final InputStream is,
+                                final int batchSize) throws XMLStreamException, JAXBException {
         final StaxStreamProcessor processor = new StaxStreamProcessor(is);
-        final ConcurrentMap<Integer, List<SaveUserResult>> usersWithResultsByBatchNum = new ConcurrentSkipListMap<>();
+        //информация о проблемах с отдельными пользователями
+        final Map<Integer, List<SaveUserResult>> usersWithResultsByBatchNum = new TreeMap<>();
+        //информация о проблемах с целыми Batch
+        final Map<Integer, SaveChunkError> chunksWithErrorsByBatchNum = new TreeMap<>();
+
+        final HashMap<Future<InsertingResultsWithNum>, ChunkInfo> futures = new HashMap<>();
 
         List<User> usersForBatch = new ArrayList<>();
 
@@ -43,48 +48,65 @@ public class UserProcessor {
         ExecutorCompletionService<InsertingResultsWithNum> completionService = new ExecutorCompletionService<>(executor);
         int countTasks = 0;
         while (processor.doUntil(XMLEvent.START_ELEMENT, "User")) {
-            ru.javaops.masterjava.xml.schema.User userXml = jaxbParser.unmarshal(processor.getReader(), ru.javaops.masterjava.xml.schema.User.class);
+            ru.javaops.masterjava.xml.schema.User userXml = JAXB_PARSER.unmarshal(processor.getReader(), ru.javaops.masterjava.xml.schema.User.class);
             final User user = new User(userXml.getValue(), userXml.getEmail(), UserFlag.valueOf(userXml.getFlag().value()));
 
             usersForBatch.add(user);
             if (usersForBatch.size() >= batchSize) {
-                insertUsers(completionService, dao, countTasks, usersForBatch);
+                futures.put(insertUsers(completionService, dao, countTasks, usersForBatch),
+                        new ChunkInfo(countTasks, usersForBatch.get(0).getEmail(),
+                                usersForBatch.get(usersForBatch.size() - 1).getEmail()));
                 countTasks++;
                 usersForBatch = new ArrayList<>();
             }
         }
         if (!usersForBatch.isEmpty()) {
-            insertUsers(completionService, dao, countTasks, usersForBatch);
+            futures.put(insertUsers(completionService, dao, countTasks, usersForBatch),
+                    new ChunkInfo(countTasks, usersForBatch.get(0).getEmail(),
+                            usersForBatch.get(usersForBatch.size() - 1).getEmail()));
             countTasks++;
         }
 
         for (int i = 0; i < countTasks; i++) {
+            Future<InsertingResultsWithNum> future = null;
             try {
-                InsertingResultsWithNum usersResult = completionService.take().get();
+                future = completionService.take();
+                InsertingResultsWithNum usersResult = future.get();
                 usersWithResultsByBatchNum.put(usersResult.getNum(), usersResult.getResults());
-            } catch (InterruptedException | ExecutionException e) {
-                throw new RuntimeException(e);
+            } catch (Exception e) {
+                ChunkInfo chunkInfo = null;
+                if (future != null)
+                    chunkInfo = futures.get(future);
+                log.error("Error inserting new users chunk:", e);
+                if (chunkInfo != null) { //Exception inside future.get()
+                    chunksWithErrorsByBatchNum.put(chunkInfo.getNum(),
+                            new SaveChunkError(chunkInfo.getFirstEmail(), chunkInfo.getLastEmail(),
+                                    SaveUserResult.Result.EXCEPTION,
+                                    e.getCause() == null ? e.getMessage() : e.getCause().getMessage()));
+                } else { //Exception inside completionService
+                    throw new RuntimeException(e);
+                }
             }
         }
-
-        return usersWithResultsByBatchNum.values().stream()
+        return new SavingResult(usersWithResultsByBatchNum.values().stream()
                 .flatMap(List::stream)
-                .collect(Collectors.toList());
+                .collect(Collectors.toList()),
+                chunksWithErrorsByBatchNum.values());
     }
 
-    private void insertUsers(CompletionService completionService,
-                             UserDao userDao,
-                             final int numBatch, final List<User> usersForBatch) {
-        completionService.submit(() -> {
-            try {
-                List<SaveUserResult> resultsInserting = new ArrayList<>();
+    private Future<InsertingResultsWithNum> insertUsers(CompletionService<InsertingResultsWithNum> completionService,
+                                                        UserDao userDao,
+                                                        final int numBatch, final List<User> usersForBatch) {
+        return completionService.submit(() -> {
+            List<SaveUserResult> resultsInserting = new ArrayList<>();
 
-                DBIProvider.getDBI().useTransaction((conn, status) -> {
-                    int[] newIds = userDao.insertNewBatchNoConflictEmail(usersForBatch);
-                    List<String> emails = usersForBatch.stream()
-                            .map(User::getEmail)
-                            .collect(Collectors.toList());
-                    List<String> emailAlreadyInDatabase;
+            DBIProvider.getDBI().useTransaction((conn, status) -> {
+                int[] newIds = userDao.insertNewBatchNoConflictEmail(usersForBatch);
+                List<String> emails = usersForBatch.stream()
+                        .map(User::getEmail)
+                        .collect(Collectors.toList());
+                List<String> emailAlreadyInDatabase;
+                if (newIds.length != usersForBatch.size()) {
                     if (newIds.length > 0)
                         emailAlreadyInDatabase = userDao.getEmailByEmailsNotInIds(emails, newIds);
                     else
@@ -96,18 +118,9 @@ public class UserProcessor {
                             resultsInserting.add(new SaveUserResult(user, SaveUserResult.Result.EMAIL_ALREADY_EXISTS, null));
                         }
                     }
-                });
-                return new InsertingResultsWithNum(numBatch, resultsInserting);
-            } catch (Exception e) {
-                log.error("Error inserting new users chunk:", e);
-                //log, set all records as error
-                List<SaveUserResult> resultsInserting = new ArrayList<>();
-                for (User user : usersForBatch) {
-                    resultsInserting.add(new SaveUserResult(user, SaveUserResult.Result.EXCEPTION,
-                            e.getCause() == null ? e.getMessage() : e.getCause().getMessage()));
                 }
-                return new InsertingResultsWithNum(numBatch, resultsInserting);
-            }
+            });
+            return new InsertingResultsWithNum(numBatch, resultsInserting);
         });
 
 
@@ -128,6 +141,30 @@ public class UserProcessor {
 
         List<SaveUserResult> getResults() {
             return results;
+        }
+    }
+
+    private static class ChunkInfo {
+        final int num; //number of batch;
+        final String firstEmail;
+        final String lastEmail;
+
+        ChunkInfo(int num, String firstEmail, String lastEmail) {
+            this.num = num;
+            this.firstEmail = firstEmail;
+            this.lastEmail = lastEmail;
+        }
+
+        public int getNum() {
+            return num;
+        }
+
+        public String getFirstEmail() {
+            return firstEmail;
+        }
+
+        public String getLastEmail() {
+            return lastEmail;
         }
     }
 }

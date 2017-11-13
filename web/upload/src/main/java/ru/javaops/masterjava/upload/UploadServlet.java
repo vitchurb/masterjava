@@ -1,8 +1,9 @@
 package ru.javaops.masterjava.upload;
 
 import org.thymeleaf.context.WebContext;
+import ru.javaops.masterjava.upload.to.SaveChunkError;
 import ru.javaops.masterjava.upload.to.SaveUserResult;
-import ru.javaops.masterjava.xml.util.JaxbParser;
+import ru.javaops.masterjava.upload.to.SavingResult;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -13,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.Part;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.List;
 
 import static ru.javaops.masterjava.common.web.ThymeleafListener.engine;
@@ -24,7 +26,6 @@ import static ru.javaops.masterjava.common.web.ThymeleafListener.engine;
 public class UploadServlet extends HttpServlet {
 
     private final UserProcessor userProcessor = new UserProcessor();
-    private static final JaxbParser JAXB_PARSER = new JaxbParser(ru.javaops.masterjava.xml.schema.User.class);
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -53,8 +54,12 @@ public class UploadServlet extends HttpServlet {
                 throw new IllegalStateException("Upload file have not been selected");
             }
             try (InputStream is = filePart.getInputStream()) {
-                List<SaveUserResult> usersResult = userProcessor.process(JAXB_PARSER, is, batchSizeInt);
-                webContext.setVariable("users", usersResult);
+                SavingResult savingUsersResult = userProcessor.process(is, batchSizeInt);
+                List<SaveUserResult> usersResult = savingUsersResult.getUsersWithError();
+                Collection<SaveChunkError> chunksWithErrors = savingUsersResult.getChunksWithError();
+
+                webContext.setVariable("usersWithErrors", usersResult);
+                webContext.setVariable("chunksWithErrors", chunksWithErrors);
                 engine.process("result", webContext, resp.getWriter());
             }
         } catch (Exception e) {

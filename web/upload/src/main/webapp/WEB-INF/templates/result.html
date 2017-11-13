@@ -13,15 +13,34 @@
         <th>Email</th>
         <th>Flag</th>
         <th>Result</th>
+    </tr>
+    </thead>
+    <tbody>
+    <!--/*@thymesVar id="usersWithErrors" type="java.util.List<ru.javaops.masterjava.upload.to.SaveUserResult>"*/-->
+    <tr th:each="user : ${usersWithErrors}">
+        <td th:text="${user.fullName}"></td>
+        <td th:text="${user.email}"></td>
+        <td th:text="${user.flag}"></td>
+        <td th:text="${user.result}"></td>
+    </tr>
+    </tbody>
+</table>
+
+<h3>Chunks with errors</h3>
+<table border="1" cellpadding="8" cellspacing="0">
+    <thead>
+    <tr>
+        <th>First email</th>
+        <th>Last emaill</th>
+        <th>Result</th>
         <th>Error description</th>
     </tr>
     </thead>
     <tbody>
-    <!--/*@thymesVar id="users" type="java.util.List<ru.javaops.masterjava.upload.to.SaveUserResult>"*/-->
-    <tr th:each="user : ${users}">
-        <td th:text="${user.fullName}"></td>
-        <td th:utext="${user.email}"></td>
-        <td th:text="${user.flag}"></td>
+    <!--/*@thymesVar id="usersWithErrors" type="java.util.Collection<ru.javaops.masterjava.upload.to.SaveChunkError>"*/-->
+    <tr th:each="user : ${chunksWithErrors}">
+        <td th:text="${user.firstEmail}"></td>
+        <td th:text="${user.lastEmail}"></td>
         <td th:text="${user.result}"></td>
         <td th:text="${user.exceptionDetails}"></td>
     </tr>
