@@ -2,6 +2,7 @@ package ru.javaops.masterjava.persist.model;
 
 import com.bertoncelj.jdbi.entitymapper.Column;
 import lombok.*;
+import ru.javaops.masterjava.persist.model.types.UserFlag;
 
 @Data
 @RequiredArgsConstructor
@@ -9,12 +10,18 @@ import lombok.*;
 @NoArgsConstructor
 public class User extends BaseEntity {
     @Column("full_name")
-    private @NonNull String fullName;
-    private @NonNull String email;
-    private @NonNull UserFlag flag;
+    @NonNull
+    private String fullName;
+    @NonNull
+    private String email;
+    @NonNull
+    private UserFlag flag;
+    @Column("city_id")
+    @NonNull
+    private City city;
 
-    public User(Integer id, String fullName, String email, UserFlag flag) {
-        this(fullName, email, flag);
-        this.id=id;
+    public User(Integer id, String fullName, String email, UserFlag flag, City city) {
+        this(fullName, email, flag, city);
+        this.id = id;
     }
 }

@@ -5,16 +5,16 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import ru.javaops.masterjava.persist.UserTestData;
-import ru.javaops.masterjava.persist.model.User;
+import ru.javaops.masterjava.persist.model.Group;
 
 import java.util.List;
 
-import static ru.javaops.masterjava.persist.UserTestData.FIRST5_USERS;
+import static ru.javaops.masterjava.persist.UserTestData.FIRST3_GROUPS;
 
-public class UserDaoTest extends AbstractDaoTest<UserDao> {
+public class GroupDaoTest extends AbstractDaoTest<GroupDao> {
 
-    public UserDaoTest() {
-        super(UserDao.class);
+    public GroupDaoTest() {
+        super(GroupDao.class);
     }
 
     @BeforeClass
@@ -29,15 +29,18 @@ public class UserDaoTest extends AbstractDaoTest<UserDao> {
 
     @Test
     public void getWithLimit() {
-        List<User> users = dao.getWithLimit(5);
-        Assert.assertEquals(FIRST5_USERS, users);
+        List<Group> groups = dao.getWithLimit(5);
+        List<Group> groupsUnordered = dao.getAllUnordered();
+        Assert.assertEquals(FIRST3_GROUPS, groups);
+        Assert.assertEquals(3, groupsUnordered.size());
     }
 
     @Test
     public void insertBatch() throws Exception {
         dao.clean();
-        dao.insertBatch(FIRST5_USERS, 3);
-        Assert.assertEquals(5, dao.getWithLimit(100).size());
+        dao.insertBatchSkipDublicates(FIRST3_GROUPS, 1);
+        List<Group> groups = dao.getWithLimit(100);
+        Assert.assertEquals(3, groups.size());
     }
 
     @Test
