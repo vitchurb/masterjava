@@ -32,3 +32,18 @@ CREATE TABLE user_group (
   group_id INTEGER NOT NULL REFERENCES groups (id),
   CONSTRAINT users_group_idx UNIQUE (user_id, group_id)
 );
+
+--changeset vch:3
+
+CREATE TYPE MAIL_SEND_LOG_ITEM_RESULT AS ENUM ('ERROR', 'SUCCESS');
+
+CREATE TABLE mail_send_log_item (
+  id          INTEGER PRIMARY KEY DEFAULT nextval('common_seq'),
+  dt          TIMESTAMP NOT NULL,
+  count_addresses INTEGER NOT NULL,
+  result      MAIL_SEND_LOG_ITEM_RESULT NOT NULL,
+  result_comment TEXT,
+  addresses_to TEXT,
+  addresses_cc TEXT
+);
+

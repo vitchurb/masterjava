@@ -18,4 +18,8 @@ public interface MailService {
             @WebParam(name = "cc") List<Addressee> cc,
             @WebParam(name = "subject") String subject,
             @WebParam(name = "body") String body);
+
+    @WebMethod
+    String sayHello(String name);
+
 }
