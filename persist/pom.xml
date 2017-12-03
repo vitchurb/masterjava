@@ -46,6 +46,11 @@
             <version>2.78</version>
         </dependency>
         <dependency>
+            <groupId>org.antlr</groupId>
+            <artifactId>stringtemplate</artifactId>
+            <version>3.2.1</version>
+        </dependency>
+        <dependency>
             <groupId>com.bertoncelj.jdbi.entitymapper</groupId>
             <artifactId>jdbi-entity-mapper</artifactId>
             <version>1.0.0</version>

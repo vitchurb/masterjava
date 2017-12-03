@@ -5,12 +5,16 @@ import one.util.streamex.IntStreamEx;
 import org.skife.jdbi.v2.sqlobject.*;
 import org.skife.jdbi.v2.sqlobject.customizers.BatchChunkSize;
 import org.skife.jdbi.v2.sqlobject.customizers.RegisterMapperFactory;
+import org.skife.jdbi.v2.sqlobject.stringtemplate.UseStringTemplate3StatementLocator;
+import org.skife.jdbi.v2.unstable.BindIn;
 import ru.javaops.masterjava.persist.DBIProvider;
 import ru.javaops.masterjava.persist.model.User;
 
+import java.util.Collection;
 import java.util.List;
 
 @RegisterMapperFactory(EntityMapperFactory.class)
+@UseStringTemplate3StatementLocator
 public abstract class UserDao implements AbstractDao {
 
     public User insert(User user) {
@@ -42,6 +46,9 @@ public abstract class UserDao implements AbstractDao {
 
     @SqlQuery("SELECT * FROM users ORDER BY full_name, email LIMIT :it")
     public abstract List<User> getWithLimit(@Bind int limit);
+
+    @SqlQuery("SELECT * FROM users WHERE id in (<ids>)")
+    public abstract List<User> getByIds(@BindIn(value = "ids") Collection<Integer> ids);
 
     //   http://stackoverflow.com/questions/13223820/postgresql-delete-all-content
     @SqlUpdate("TRUNCATE users CASCADE")

@@ -16,6 +16,10 @@
     <packaging>war</packaging>
     <name>Mail Service</name>
 
+    <build>
+        <finalName>mail-service</finalName>
+    </build>
+
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>

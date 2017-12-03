@@ -4,9 +4,13 @@
     <title>Users</title>
 </head>
 <body>
+
+<h3>Choose users to send email:</h3>
+<form action="" method="post">
 <table border="1" cellpadding="8" cellspacing="0">
     <thead>
     <tr>
+        <th></th>
         <th>#</th>
         <th>Full Name</th>
         <th>Email</th>
@@ -16,6 +20,9 @@
     <tbody>
     <!--/*@thymesVar id="users" type="java.util.List<ru.javaops.masterjava.persist.model.User>"*/-->
     <tr th:each="user,iter: ${users}">
+        <td>
+            <input type="checkbox" th:name="${'user_' + user.id}" />
+        </td>
         <td th:text="${iter.count}"></td>
         <td th:text="${user.fullName}"></td>
         <td th:utext="${user.email}"></td>
@@ -23,5 +30,18 @@
     </tr>
     </tbody>
 </table>
+    <p>
+        <label for="subject">Subject:</label>
+        <input name="subject" id="subject"/>
+        <br/><br/>
+        <label for="body">Body:</label>
+        <input name="body" id="body"/>
+    </p>
+    <p>
+    <input type="submit" value="Send email" name="submit">
+    </p>
+
+</form>
+
 </body>
 </html>
