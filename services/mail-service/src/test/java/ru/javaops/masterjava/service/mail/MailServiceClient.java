@@ -3,10 +3,12 @@ package ru.javaops.masterjava.service.mail;
 import com.google.common.collect.ImmutableSet;
 import ru.javaops.web.WebStateException;
 
+import javax.activation.DataHandler;
 import javax.xml.namespace.QName;
 import javax.xml.ws.Service;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.file.Paths;
 
 public class MailServiceClient {
 
@@ -17,13 +19,17 @@ public class MailServiceClient {
 
         MailService mailService = service.getPort(MailService.class);
 
-        String state = mailService.sendToGroup(ImmutableSet.of(new Addressee("masterjava@javaops.ru", null)), null,
-                "Group mail subject", "Group mail body");
+        String state = mailService.sendToGroup(ImmutableSet.of(new Addressee("vch@udm.ru", null)), null,
+                "Group mail subject", "Group mail body",
+                new Attachment("filenma1.xml", new DataHandler(
+                        Paths.get("d:\\_payload.xml").toUri().toURL())));
         System.out.println("Group mail state: " + state);
 
         GroupResult groupResult = mailService.sendBulk(ImmutableSet.of(
                 new Addressee("Мастер Java <masterjava@javaops.ru>"),
-                new Addressee("Bad Email <bad_email.ru>")), "Bulk mail subject", "Bulk mail body");
+                new Addressee("Bad Email <bad_email.ru>")), "Bulk mail subject", "Bulk mail body",
+                new Attachment("filenma1.xml", new DataHandler(
+                        Paths.get("d:\\_payload.xml").toUri().toURL())));
         System.out.println("\nBulk mail groupResult:\n" + groupResult);
     }
 }

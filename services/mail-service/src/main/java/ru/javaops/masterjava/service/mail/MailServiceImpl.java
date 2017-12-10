@@ -9,12 +9,14 @@ import java.util.Set;
 //          , wsdlLocation = "WEB-INF/wsdl/mailService.wsdl"
 )
 public class MailServiceImpl implements MailService {
-    public String sendToGroup(Set<Addressee> to, Set<Addressee> cc, String subject, String body) throws WebStateException {
-        return MailSender.sendToGroup(to, cc, subject, body);
+    public String sendToGroup(Set<Addressee> to, Set<Addressee> cc, String subject, String body,
+                              Attachment attachment) throws WebStateException {
+        return MailSender.sendToGroup(to, cc, subject, body, attachment);
     }
 
     @Override
-    public GroupResult sendBulk(Set<Addressee> to, String subject, String body) throws WebStateException {
-        return MailServiceExecutor.sendBulk(to, subject, body);
+    public GroupResult sendBulk(Set<Addressee> to, String subject, String body,
+                                Attachment attachment) throws WebStateException {
+        return MailServiceExecutor.sendBulk(to, subject, body, attachment);
     }
 }

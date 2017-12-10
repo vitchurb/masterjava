@@ -17,12 +17,13 @@ import java.util.Set;
 public class MailSender {
     private static final MailCaseDao MAIL_CASE_DAO = DBIProvider.getDao(MailCaseDao.class);
 
-    static MailResult sendTo(Addressee to, String subject, String body) throws WebStateException {
-        val state = sendToGroup(ImmutableSet.of(to), ImmutableSet.of(), subject, body);
+    static MailResult sendTo(Addressee to, String subject, String body, Attachment attachment) throws WebStateException {
+        val state = sendToGroup(ImmutableSet.of(to), ImmutableSet.of(), subject, body, attachment);
         return new MailResult(to.getEmail(), state);
     }
 
-    static String sendToGroup(Set<Addressee> to, Set<Addressee> cc, String subject, String body) throws WebStateException {
+    static String sendToGroup(Set<Addressee> to, Set<Addressee> cc, String subject, String body,
+                              Attachment attachment) throws WebStateException {
         log.info("Send mail to \'" + to + "\' cc \'" + cc + "\' subject \'" + subject + (log.isDebugEnabled() ? "\nbody=" + body : ""));
         String state = MailResult.OK;
         try {
@@ -38,7 +39,10 @@ public class MailSender {
 
             //  https://yandex.ru/blog/company/66296
             email.setHeaders(ImmutableMap.of("List-Unsubscribe", "<mailto:masterjava@javaops.ru?subject=Unsubscribe&body=Unsubscribe>"));
-
+            if (attachment != null && attachment.getDataHandler() != null) {
+                email.attach(attachment.getDataHandler().getDataSource(), attachment.getFilename(),
+                        attachment.getDataHandler().getName());
+            }
             email.send();
         } catch (EmailException e) {
             log.error(e.getMessage(), e);
