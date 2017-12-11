@@ -19,7 +19,7 @@ public class MailServiceClient {
 
         MailService mailService = service.getPort(MailService.class);
 
-        String state = mailService.sendToGroup(ImmutableSet.of(new Addressee("vch@udm.ru", null)), null,
+        String state = mailService.sendToGroup(ImmutableSet.of(new Addressee("masterjava@javaops.ru", null)), null,
                 "Group mail subject", "Group mail body",
                 new Attachment("filenma1.xml", new DataHandler(
                         Paths.get("d:\\_payload.xml").toUri().toURL())));
