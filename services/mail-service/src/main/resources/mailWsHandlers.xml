@@ -1,8 +1,16 @@
 <handler-chains xmlns="http://java.sun.com/xml/ns/javaee">
-<handler-chain>
-    <handler>
-        <handler-name>SoapLoggingHandler</handler-name>
-        <handler-class>ru.javaops.masterjava.web.handler.SoapLoggingHandlers$ServerHandler</handler-class>
-    </handler>
-</handler-chain>
+    <handler-chain>
+        <handler>
+            <handler-name>SoapLoggingConfigurableHandlers</handler-name>
+            <handler-class>ru.javaops.masterjava.web.handler.SoapLoggingConfigurableHandlers$ServerHandler</handler-class>
+        </handler>
+        <handler>
+            <handler-name>SoapServerSecurityConfigurableHandler</handler-name>
+            <handler-class>ru.javaops.masterjava.web.handler.SoapServerSecurityConfigurableHandler$ServerHandler</handler-class>
+        </handler>
+        <handler>
+            <handler-name>SoapServerStatisticHandler</handler-name>
+            <handler-class>ru.javaops.masterjava.web.handler.SoapServerStatisticHandler$ServerHandler</handler-class>
+        </handler>
+    </handler-chain>
 </handler-chains>

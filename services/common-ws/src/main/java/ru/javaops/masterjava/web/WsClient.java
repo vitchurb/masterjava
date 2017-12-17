@@ -22,7 +22,7 @@ public class WsClient<T> {
     private String endpointAddress;
 
     static {
-        HOSTS = Configs.getConfig("hosts.conf", "hosts");
+        HOSTS = Configs.getConfig("hosts.conf", "hosts.mail");
     }
 
     public WsClient(URL wsdlUrl, QName qname, Class<T> serviceClass) {
@@ -59,4 +59,9 @@ public class WsClient<T> {
     public static WebStateException getWebStateException(Throwable t, ExceptionType type) {
         return (t instanceof WebStateException) ? (WebStateException) t : new WebStateException(t, type);
     }
+
+    public String getParamFromConfig(String paramName) {
+        return HOSTS.getString(paramName);
+    }
+
 }
