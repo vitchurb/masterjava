@@ -48,7 +48,7 @@ public class MailSender {
             email.send();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            state = e.getMessage();
+            state = String.valueOf(e.getMessage());
         }
         try {
             MAIL_CASE_DAO.insert(MailCase.of(to, cc, subject, state));

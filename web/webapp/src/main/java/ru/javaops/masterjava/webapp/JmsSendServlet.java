@@ -1,19 +1,25 @@
 package ru.javaops.masterjava.webapp;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.IOUtils;
 
 import javax.jms.*;
 import javax.naming.InitialContext;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
+import javax.servlet.annotation.MultipartConfig;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Part;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.IllegalStateException;
 
 @WebServlet("/sendJms")
+@MultipartConfig(fileSizeThreshold = 1024 * 1024 * 10, //10 MB in memory limit
+        maxFileSize = 1024 * 1024 * 20)
 @Slf4j
 public class JmsSendServlet extends HttpServlet {
     private Connection connection;
@@ -55,7 +61,15 @@ public class JmsSendServlet extends HttpServlet {
             String users = req.getParameter("users");
             String subject = req.getParameter("subject");
             String body = req.getParameter("body");
-            result = sendJms(users, subject, body);
+            Part filePart = req.getPart("attach");
+
+            if (filePart == null) {
+                result = sendJms(users, subject, body);
+            } else {
+                result = sendJmsF(users, subject, body,
+                        filePart.getSubmittedFileName(),
+                        filePart.getInputStream());
+            }
             log.info("Processing finished with result: {}", result);
         } catch (Exception e) {
             log.error("Processing failed", e);
@@ -65,9 +79,23 @@ public class JmsSendServlet extends HttpServlet {
     }
 
     private synchronized String sendJms(String users, String subject, String body) throws JMSException {
-        TextMessage testMessage = session.createTextMessage();
-        testMessage.setText(subject);
-        producer.send(testMessage);
+        ObjectMessage objectMessage = session.createObjectMessage();
+        objectMessage.setStringProperty("users", users);
+        objectMessage.setStringProperty("subject", subject);
+        objectMessage.setStringProperty("body", body);
+        producer.send(objectMessage);
+        return "Successfully sent JMS message";
+    }
+
+    private synchronized String sendJmsF(String users, String subject, String body,
+                                         String filename, InputStream attachDataStream) throws JMSException, IOException {
+        BytesMessage bytesMessage = session.createBytesMessage();
+        bytesMessage.writeBytes(IOUtils.toByteArray(attachDataStream));
+        bytesMessage.setStringProperty("users", users);
+        bytesMessage.setStringProperty("subject", subject);
+        bytesMessage.setStringProperty("body", body);
+        bytesMessage.setStringProperty("attachName", filename);
+        producer.send(bytesMessage);
         return "Successfully sent JMS message";
     }
 }

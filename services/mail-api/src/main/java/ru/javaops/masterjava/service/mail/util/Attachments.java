@@ -1,7 +1,8 @@
 package ru.javaops.masterjava.service.mail.util;
 
 import lombok.AllArgsConstructor;
-import org.apache.commons.io.input.CloseShieldInputStream;
+import org.apache.commons.io.input.ClosedInputStream;
+import org.apache.commons.io.input.ProxyInputStream;
 import ru.javaops.masterjava.service.mail.Attachment;
 
 import javax.activation.DataHandler;
@@ -23,7 +24,7 @@ public class Attachments {
 
         @Override
         public InputStream getInputStream() throws IOException {
-            return new CloseShieldInputStream(inputStream);
+            return new CloseShieldInputStreamWithReset(inputStream);
         }
 
         @Override
@@ -40,5 +41,20 @@ public class Attachments {
         public String getName() {
             return "";
         }
+
+    }
+
+    private static class CloseShieldInputStreamWithReset extends ProxyInputStream {
+        public CloseShieldInputStreamWithReset(InputStream in) {
+            super(in);
+        }
+
+        @Override
+        public void close() throws IOException {
+            if (this.in.markSupported())
+                this.in.reset();
+            this.in = new ClosedInputStream();
+        }
+
     }
 }
