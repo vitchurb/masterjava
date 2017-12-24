@@ -39,8 +39,10 @@ public class JmsMailListener implements ServletContextListener {
                 try {
                     while (!Thread.interrupted()) {
                         Message m = receiver.receive();
-                        if (m == null)
+                        if (m == null) {
+                            log.error("Receiver returned null. Stopping thread.");
                             break;
+                        }
                         try {
                             if (m instanceof ObjectMessage) {
                                 ObjectMessage om = (ObjectMessage) m;
