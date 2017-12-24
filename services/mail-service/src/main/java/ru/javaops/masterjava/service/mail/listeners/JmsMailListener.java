@@ -13,11 +13,13 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.Collections;
 
 @WebListener
 @Slf4j
 public class JmsMailListener implements ServletContextListener {
+    private static final int MAX_FILE_SIZE = 1024 * 1024 * 21;
     private Thread listenerThread = null;
     private QueueConnection connection;
 
@@ -37,31 +39,40 @@ public class JmsMailListener implements ServletContextListener {
                 try {
                     while (!Thread.interrupted()) {
                         Message m = receiver.receive();
-                        if (m instanceof ObjectMessage) {
-                            ObjectMessage om = (ObjectMessage) m;
-                            String users = om.getStringProperty("users");
-                            String subject = om.getStringProperty("subject");
-                            String body = om.getStringProperty("body");
-                            log.info("Received ObjectMessage with users: '{}' subject: '{}' body: '{}' ",
-                                    users, subject, body);
-                            GroupResult gr = MailServiceExecutor.sendBulk(MailWSClient.split(users), subject, body,
-                                    Collections.emptyList());
-                            log.info("Result sending email : {}", gr);
-                        } else if (m instanceof BytesMessage) {
-                            BytesMessage om = (BytesMessage) m;
-                            String users = om.getStringProperty("users");
-                            String subject = om.getStringProperty("subject");
-                            String body = om.getStringProperty("body");
-                            String attachName = om.getStringProperty("attachName");
-                            long size = om.getBodyLength();
-                            byte[] data = new byte[(int) size];
-                            int resReadSata = om.readBytes(data);
+                        if (m == null)
+                            break;
+                        try {
+                            if (m instanceof ObjectMessage) {
+                                ObjectMessage om = (ObjectMessage) m;
+                                String users = om.getStringProperty("users");
+                                String subject = om.getStringProperty("subject");
+                                String body = om.getStringProperty("body");
+                                log.info("Received ObjectMessage with users: '{}' subject: '{}' body: '{}' ",
+                                        users, subject, body);
+                                GroupResult gr = MailServiceExecutor.sendBulk(MailWSClient.split(users), subject, body,
+                                        Collections.emptyList());
+                                log.info("Result sending email : {}", gr);
+                            } else if (m instanceof BytesMessage) {
+                                BytesMessage om = (BytesMessage) m;
+                                String users = om.getStringProperty("users");
+                                String subject = om.getStringProperty("subject");
+                                String body = om.getStringProperty("body");
+                                String attachName = om.getStringProperty("attachName");
+                                long size = om.getBodyLength();
+                                if (size > MAX_FILE_SIZE) {
+                                    throw new IOException("File too large");
+                                }
+                                byte[] data = new byte[(int) size];
+                                int resReadSata = om.readBytes(data);
 
-                            log.info("Received BytesMessage with users: '{}' subject: '{}' body: '{}' filename: '{}' fileSize: `{}`",
-                                    users, subject, body, attachName, resReadSata);
-                            GroupResult gr = MailServiceExecutor.sendBulk(MailWSClient.split(users), subject, body,
-                                    ImmutableList.of(Attachments.getAttachment(attachName, new ByteArrayInputStream(data))));
-                            log.info("Result sending email : {}", gr);
+                                log.info("Received BytesMessage with users: '{}' subject: '{}' body: '{}' filename: '{}' fileSize: `{}`",
+                                        users, subject, body, attachName, resReadSata);
+                                GroupResult gr = MailServiceExecutor.sendBulk(MailWSClient.split(users), subject, body,
+                                        ImmutableList.of(Attachments.getAttachment(attachName, new ByteArrayInputStream(data))));
+                                log.info("Result sending email : {}", gr);
+                            }
+                        } catch (Exception e) {
+                            log.error("Processing message failed: " + e.getMessage(), e);
                         }
                     }
                 } catch (Exception e) {
