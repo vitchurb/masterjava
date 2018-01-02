@@ -4,9 +4,11 @@ import lombok.extern.slf4j.Slf4j;
 import ru.javaops.masterjava.service.mail.GroupResult;
 import ru.javaops.masterjava.service.mail.MailRemoteService;
 import ru.javaops.masterjava.service.mail.util.MailUtils.MailObject;
+import ru.javaops.masterjava.util.Exceptions;
 import scala.concurrent.Await;
 import scala.concurrent.duration.Duration;
 
+import javax.servlet.AsyncContext;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -36,7 +38,16 @@ public class AkkaTypedSendServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         req.setCharacterEncoding("UTF-8");
-        doAndWriteResponse(resp, () -> sendAkka(createMailObject(req)));
+        final AsyncContext asyncContext = req.startAsync();
+        asyncContext.setTimeout(10000);
+
+        asyncContext.start(Exceptions.wrap(() -> {
+            try {
+                doAndWriteResponse(resp, () -> sendAkka(createMailObject(req)));
+            } finally {
+                asyncContext.complete();
+            }
+        }, log));
     }
 
     private String sendAkka(MailObject mailObject) throws Exception {

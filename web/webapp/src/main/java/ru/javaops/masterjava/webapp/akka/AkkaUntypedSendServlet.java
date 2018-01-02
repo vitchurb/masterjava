@@ -5,7 +5,10 @@ import akka.actor.ActorRef;
 import lombok.extern.slf4j.Slf4j;
 import ru.javaops.masterjava.service.mail.GroupResult;
 import ru.javaops.masterjava.service.mail.util.MailUtils.MailObject;
+import ru.javaops.masterjava.threadpool.ThreadPoolExecutorGrowing;
+import ru.javaops.masterjava.util.Exceptions;
 
+import javax.servlet.AsyncContext;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
@@ -14,17 +17,21 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 import static ru.javaops.masterjava.webapp.WebUtil.createMailObject;
 import static ru.javaops.masterjava.webapp.WebUtil.doAndWriteResponse;
 import static ru.javaops.masterjava.webapp.akka.AkkaWebappListener.akkaActivator;
 
-@WebServlet(value = "/sendAkkaUntyped", loadOnStartup = 1)
+@WebServlet(value = "/sendAkkaUntyped", loadOnStartup = 1, asyncSupported = true)
 @Slf4j
 @MultipartConfig
 public class AkkaUntypedSendServlet extends HttpServlet {
     private ActorRef webappActor;
     private ActorRef mailActor;
+    private final ThreadPoolExecutor executorService =
+            new ThreadPoolExecutorGrowing(0, 30, 10, TimeUnit.SECONDS);
 
     @Override
     public void init(ServletConfig config) throws ServletException {
@@ -36,7 +43,16 @@ public class AkkaUntypedSendServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         req.setCharacterEncoding("UTF-8");
-        doAndWriteResponse(resp, () -> sendAkka(createMailObject(req)));
+        final AsyncContext asyncContext = req.startAsync();
+        asyncContext.setTimeout(10000);
+
+        executorService.execute(Exceptions.wrap(() -> {
+            try {
+                doAndWriteResponse(resp, () -> sendAkka(createMailObject(req)));
+            } finally {
+                asyncContext.complete();
+            }
+        }, log));
     }
 
     private String sendAkka(MailObject mailObject) {
